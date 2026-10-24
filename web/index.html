@@ -3,194 +3,402 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AgentVault x AP4M</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<title>AgentVault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
-  :root { --bg:#0b0d10; --panel:#13161b; --line:#232830; --text:#e8eaed; --muted:#8b929c; --ok:#3ecf8e; --bad:#ff5d5d; --o1:#c2410c; --o2:#ff7a1a; --blue:#6aa8ff; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.5 Inter, system-ui, sans-serif; }
-  .mono { font-family:"IBM Plex Mono", ui-monospace, monospace; }
-  header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 24px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
-  .brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px; }
-  .dots { display:flex; } .dots span { width:18px; height:18px; border-radius:50%; } .dots span:first-child { background:#eb001b; } .dots span:last-child { background:#f79e1b; margin-left:-7px; opacity:.9; }
-  .pills { display:flex; gap:8px; flex-wrap:wrap; }
-  .pill { padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; background:var(--panel); border:1px solid var(--line); color:var(--muted); }
-  .pill.ok { color:var(--ok); border-color:#1d4d36; background:#0f2a1d; } .pill.bad { color:var(--bad); border-color:#5c2328; background:#2a1214; }
-  main { max-width:1320px; margin:0 auto; padding:20px 24px 60px; display:grid; grid-template-columns:360px 1fr; gap:18px; }
-  @media (max-width:960px) { main { grid-template-columns:1fr; padding:16px; } }
-  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:16px; }
-  h2 { margin:0 0 10px; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600; }
-  textarea, input { width:100%; background:var(--bg); border:1px solid var(--line); border-radius:8px; color:var(--text); padding:9px 11px; font:inherit; }
-  textarea { min-height:70px; resize:vertical; }
-  label { color:var(--muted); font-size:12px; display:block; margin:8px 0 4px; }
-  .two { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-  button { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:9px 14px; font:inherit; font-weight:600; cursor:pointer; width:100%; margin-top:10px; }
-  button:hover { border-color:var(--muted); } button:disabled { opacity:.45; cursor:not-allowed; }
-  button.primary { background:var(--o2); border-color:var(--o2); color:#111; } button.danger { background:#2a1214; border-color:#5c2328; color:#ff9b9b; }
-  button.on { background:#3a2410; border-color:var(--o2); color:var(--o2); }
-  .bar { display:flex; height:26px; border-radius:6px; overflow:hidden; background:repeating-linear-gradient(45deg,#1a1e24,#1a1e24 6px,#161a1f 6px,#161a1f 12px); border:1px dashed #333a44; }
-  .bar i { display:block; height:100%; transition:width .5s; } .bar .s { background:var(--o1); } .bar .a { background:var(--o2); }
-  .legend { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:8px; gap:6px; flex-wrap:wrap; } .legend b { color:var(--text); }
-  .rule { font-size:11px; color:var(--muted); margin-top:8px; text-align:center; } .rule b { color:var(--text); }
-  .big { font-size:28px; font-weight:700; } .delta { color:var(--ok); font-weight:600; }
-  .note { color:var(--muted); font-size:12px; }
-  .feed { display:flex; flex-direction:column; gap:8px; max-height:68vh; overflow:auto; padding-right:4px; }
-  .ev { display:grid; grid-template-columns:4px 1fr; gap:12px; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 12px; animation:in .3s ease; }
-  .ev .s { border-radius:2px; background:var(--line); }
-  .ev.good .s { background:var(--ok); } .ev.bad .s { background:var(--bad); } .ev.chain .s { background:var(--blue); } .ev.warn .s { background:var(--o2); }
-  .ev .h { font-weight:600; } .ev .m { color:var(--muted); font-size:12px; } .ev .m a { color:var(--muted); }
-  .ev.bad .h { color:var(--bad); }
-  .checks { margin:6px 0 0; padding:0; list-style:none; font-size:13px; } .checks li.ok::before { content:"✓ "; color:var(--ok); font-weight:700; } .checks li.no { color:var(--bad); } .checks li.no::before { content:"✗ "; font-weight:700; }
-  .thumbs { display:flex; gap:6px; margin-top:6px; } .thumbs img { width:54px; height:54px; border-radius:6px; }
-  .tag { display:inline-block; font-size:10px; font-weight:700; letter-spacing:.06em; padding:1px 6px; border-radius:4px; margin-right:6px; vertical-align:1px; }
-  .tag.http { background:#13233d; color:var(--blue); } .tag.chain { background:#1b1530; color:#b39dff; } .tag.agent { background:#2b2210; color:var(--o2); } .tag.guard { background:#0f2a1d; color:var(--ok); }
-  iframe { width:100%; height:420px; border:0; border-radius:8px; background:#fff; }
-  a { color:var(--muted); } a:hover { color:var(--text); }
-  .rcpt { display:flex; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid var(--line); font-size:13px; } .rcpt:last-child { border:0; }
-  @keyframes in { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+  :root {
+    --paper: #f3f0ee;
+    --sheet: #ffffff;
+    --ink: #141413;
+    --muted: #5f5b57;
+    --rule: #e4dfdb;
+    --accent: #cf4500;
+    --cleared: #1f7a4d;
+    --refused: #c4161c;
+    --inflight: #f79e1b;
+    --panel: 28px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.55 Figtree, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  a { color: inherit; text-decoration-color: var(--accent); text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+  a:hover { color: var(--accent); }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+  /* nav */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px max(40px, calc((100vw - 1240px) / 2)); background: var(--sheet); flex-wrap: wrap; }
+  .mark { display: flex; align-items: center; gap: 12px; }
+  .mark svg { width: 30px; height: 30px; flex: none; }
+  .mark b { font-size: 21px; font-weight: 800; letter-spacing: -.02em; }
+  .mark span { color: var(--muted); font-size: 15px; padding-left: 12px; border-left: 1px solid var(--rule); }
+  @media (max-width: 1400px) { .tagline { display: none; } }
+  .top button { padding: 12px 18px; font-size: 14px; }
+  .top button.go { padding: 12px 24px; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  button { font: 600 15px/1 Figtree, system-ui, sans-serif; border-radius: 999px; padding: 13px 22px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+  button:hover { background: var(--ink); color: #fff; }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  button.go { background: var(--ink); color: #fff; padding: 13px 28px; }
+  button.go:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
+  button.toggle[aria-pressed="true"] { background: var(--inflight); border-color: var(--inflight); color: var(--ink); }
+  button.stop { border-color: var(--refused); color: var(--refused); }
+  button.stop:hover { background: var(--refused); color: #fff; }
+
+  /* hero: the mandate */
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 0 40px; }
+  @media (max-width: 960px) { .wrap, .top { padding-left: 16px; padding-right: 16px; } }
+  .mandate { margin: 28px 0 24px; background: var(--sheet); border-radius: var(--panel); padding: 40px 44px 36px; }
+  @media (max-width: 960px) { .mandate { padding: 26px 22px; margin-top: 16px; } }
+  .mandate label { display: block; color: var(--accent); font-weight: 600; font-size: 15px; margin-bottom: 10px; }
+  .goal { display: block; width: 100%; border: 2px solid var(--rule); border-radius: 20px; resize: none; background: var(--paper); color: var(--ink); font: 700 36px/1.15 Figtree, system-ui, sans-serif; letter-spacing: -.03em; padding: 22px 64px 22px 26px; overflow: hidden; cursor: text; transition: border-color .2s, background .2s, box-shadow .2s; }
+  .goal::placeholder { color: #a39d97; }
+  .goal:hover { border-color: #c9c2bb; }
+  .goal:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 5px rgba(207,69,0,.12); }
+  .field { position: relative; max-width: 1080px; }
+  .field .pen { position: absolute; right: 22px; top: 24px; width: 26px; height: 26px; color: var(--muted); pointer-events: none; }
+  .field:focus-within .pen { color: var(--accent); }
+  .hint { font-size: 14px; color: var(--muted); margin-top: 8px; }
+  @media (max-width: 960px) { .goal { font-size: 24px; padding: 16px 52px 16px 18px; } .field .pen { top: 18px; right: 16px; } }
+  .limits { margin-top: 18px; font-size: 19px; color: var(--muted); }
+  .limits input { width: 86px; font: 700 19px Figtree, sans-serif; color: var(--ink); border: 0; background: var(--paper); border-radius: 999px; text-align: center; padding: 6px 4px; margin: 0 2px; font-variant-numeric: tabular-nums; }
+  .limits input:focus { outline: 2px solid var(--accent); }
+
+  /* layout */
+  .grid { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 24px; align-items: start; padding-bottom: 60px; }
+  @media (max-width: 960px) { .grid { grid-template-columns: 1fr; gap: 16px; } }
+  aside, main > .panel { background: var(--sheet); border-radius: var(--panel); padding: 30px 30px 32px; }
+  @media (max-width: 960px) { aside, main > .panel { padding: 22px 20px; } }
+  main { min-width: 0; }
+  main > .panel + .panel { margin-top: 24px; }
+  h2 { font-size: 17px; font-weight: 700; margin: 0 0 12px; letter-spacing: -.01em; }
+  aside section + section { margin-top: 30px; padding-top: 26px; border-top: 1px solid var(--rule); }
+
+  /* channel + payout */
+  .figure { font-size: 52px; font-weight: 800; line-height: 1; letter-spacing: -.04em; }
+  .figure small { font-size: 18px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+  .figure-sub { font-size: 15px; color: var(--muted); margin-top: 6px; }
+  .bar { height: 12px; background: var(--paper); border-radius: 999px; overflow: hidden; margin: 18px 0 14px; display: flex; }
+  .bar i { display: block; height: 100%; transition: width .6s ease; }
+  .bar .paid { background: var(--ink); } .bar .approved { background: var(--inflight); }
+  .key { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 10px; font-size: 14px; color: var(--muted); }
+  .key .sw { width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; }
+  .key b { color: var(--ink); font-weight: 700; text-align: right; }
+  .rule-note { font-size: 14px; color: var(--muted); margin-top: 12px; }
+  .delta { color: var(--cleared); font-weight: 700; font-size: 16px; }
+
+  /* trust record */
+  .proofs { list-style: none; margin: 0; padding: 0; font-size: 15px; }
+  .proofs li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; padding: 10px 0; }
+  .proofs li + li { border-top: 1px solid var(--rule); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 7px; background: var(--rule); }
+  .dot.ok { background: var(--cleared); } .dot.no { background: var(--refused); } .dot.wait { background: var(--inflight); }
+  .proofs .sub { color: var(--muted); font-size: 14px; }
+  .empty { color: var(--muted); font-size: 15px; }
+
+  /* payments board */
+  .board-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+  .board-head h2 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -.03em; }
+  .status { font-size: 15px; color: var(--muted); }
+  .board { width: 100%; border-collapse: collapse; }
+  .board th { text-align: left; font-size: 13px; font-weight: 600; color: var(--muted); padding: 0 6px 12px; border-bottom: 1.5px solid var(--ink); white-space: nowrap; }
+  .board th:first-child, .board td:first-child { padding-left: 0; }
+  .board th.st { text-align: center; width: 62px; }
+  .board td.item { min-width: 300px; }
+  .board td { padding: 18px 6px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .board tr:last-child td { border-bottom: 0; }
+  .item b { font-weight: 700; font-size: 17px; letter-spacing: -.01em; }
+  .item .why { color: var(--muted); font-size: 14px; max-width: 48ch; margin-top: 2px; }
+  .item .who { font-size: 14px; color: var(--accent); font-weight: 600; }
+  .price { font-size: 24px; font-weight: 800; letter-spacing: -.03em; white-space: nowrap; }
+  td.st { text-align: center; }
+  .pip { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--rule); background: var(--sheet); transition: background .35s, border-color .35s; }
+  .pip.done { background: var(--ink); border-color: var(--ink); }
+  .pip.wait { border-color: var(--inflight); background: #fff1dc; }
+  .pip.fail { background: var(--refused); border-color: var(--refused); }
+  .pip svg { width: 15px; height: 15px; }
+  a.pip { text-decoration: none; } a.pip:hover { background: var(--accent); border-color: var(--accent); }
+  .refusal { color: var(--refused); font-size: 15px; font-weight: 700; margin-top: 8px; max-width: 60ch; }
+  .checks { margin: 8px 0 0; padding: 0; list-style: none; font-size: 14px; color: var(--muted); }
+  .checks li.no { color: var(--refused); }
+  .checks li::before { content: "✓"; display: inline-block; width: 18px; color: var(--cleared); font-weight: 800; }
+  .checks li.no::before { content: "✗"; color: var(--refused); }
+  .thumbs { display: flex; gap: 8px; margin-top: 10px; } .thumbs img { width: 46px; height: 46px; border-radius: 50%; }
+  .resource { font-size: 14px; color: var(--ink); margin-top: 8px; font-weight: 500; }
+  .board-empty td { padding: 48px 0; text-align: center; color: var(--muted); }
+  @media (max-width: 720px) { .board th.st, .board td.st { display: none; } .board td.stmobile { display: table-cell; } }
+  .stmobile { display: none; font-size: 14px; }
+  .plan-by { font-size: 14px; color: var(--muted); margin-top: 14px; }
+
+  /* storefront */
+  .store { display: none; }
+  .store-frame { border-radius: 20px; overflow: hidden; background: var(--paper); }
+  .store-bar { display: flex; justify-content: space-between; gap: 8px; padding: 10px 16px; font-size: 14px; color: var(--muted); }
+  .store iframe { width: 100%; height: 460px; border: 0; display: block; background: #fff; }
+
+  details { margin-top: 24px; }
+  summary { cursor: pointer; font-weight: 700; font-size: 15px; }
+  .log { font-size: 14px; color: var(--muted); max-height: 320px; overflow: auto; margin-top: 10px; padding: 0; list-style: none; }
+  .log li { padding: 5px 0; border-bottom: 1px solid var(--rule); }
+  .log time { display: inline-block; width: 92px; }
+  footer { padding: 0 0 40px; color: var(--muted); font-size: 14px; }
+
+
+  /* scroll motion */
+  .top { position: sticky; top: 0; z-index: 10; transition: box-shadow .3s; }
+  .top.scrolled { box-shadow: 0 1px 0 var(--rule), 0 8px 24px rgba(20,20,19,.06); }
+  .reveal { opacity: 0; transform: translateY(32px) scale(.985); transition: opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1); }
+  .reveal.in { opacity: 1; transform: none; }
+  .goal-wrap { transition: transform .1s linear, opacity .1s linear; transform-origin: left top; }
+  .goal-wrap { max-width: 1080px; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } .goal-wrap { transform: none !important; opacity: 1 !important; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
-<header>
-  <div class="brand"><div class="dots"><span></span><span></span></div>AgentVault <span class="note" style="font-weight:500;font-size:13px">× Mastercard AP4M · XRPL EVM · RLUSD</span></div>
-  <div class="pills"><span class="pill" id="pKya">Agent: not signed in</span><span class="pill" id="pBrain">Brain: -</span><span class="pill" id="pConn">connecting...</span></div>
+<header class="top">
+  <div class="mark"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="9" fill="#141413"/><circle cx="16" cy="16" r="7" fill="none" stroke="#fff" stroke-width="2.4"/><circle cx="16" cy="16" r="2.2" fill="#cf4500"/></svg><b>AgentVault</b><span class="tagline">Built on Mastercard AP4M, settled in RLUSD</span></div>
+  <div class="actions">
+    <button class="toggle" id="btnAttack" aria-pressed="false" title="LaunchKit triples the hosting price at checkout">Raise prices at checkout</button>
+    <button id="btnOvercap" title="Signs a voucher above the channel cap and asks the PaymentLedger to accept it. Simulation only.">Try an over-cap voucher</button>
+    <button class="stop" id="btnKill">Close channel</button>
+    <button class="go" id="btnRun">Run agent</button>
+  </div>
 </header>
 
-<main>
-  <section>
-    <div class="card">
-      <h2>Mandate (what the human authorizes)</h2>
-      <textarea id="goal">Launch Bloom &amp; Co's online flower shop: get a domain, hosting, and product photos.</textarea>
-      <div class="two">
-        <div><label>Budget (RLUSD)</label><input id="budget" type="number" step="0.1" value="1" /></div>
-        <div><label>Per-purchase cap</label><input id="perPurchase" type="number" step="0.1" value="0.5" /></div>
+<div class="wrap">
+<div class="mandate">
+  <label for="goal">Tell the agent what to do</label>
+  <div class="field"><textarea id="goal" class="goal" rows="2" placeholder="Describe what the agent should buy…" aria-describedby="goalHint">Launch Bloom &amp; Co's online flower shop: get a domain, hosting, and product photos.</textarea><svg class="pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
+  <div class="hint" id="goalHint">Type your own mandate here, set the limits below, then press Run agent.</div>
+  <div class="limits">Spend up to <input id="budget" type="number" step="0.1" min="0.1" value="1.00" aria-label="Budget in RLUSD" /> RLUSD, at most <input id="perPurchase" type="number" step="0.1" min="0.1" value="0.50" aria-label="Per-purchase cap in RLUSD" /> per purchase.</div>
+</div>
+
+<div class="grid">
+  <aside>
+    <section>
+      <h2>Funded channel</h2>
+      <div class="figure" id="fig">0.00</div><div class="figure-sub" id="figSub">of 0.00 RLUSD paid to the merchant</div>
+      <div class="bar" role="img" id="barLabel" aria-label="Channel usage"><i class="paid" id="barPaid" style="width:0"></i><i class="approved" id="barApproved" style="width:0"></i></div>
+      <div class="key">
+        <span class="sw" style="background:var(--ink)"></span><span>Paid to merchant</span><b id="kPaid">0.00</b>
+        <span class="sw" style="background:var(--inflight)"></span><span>Signed, settling</span><b id="kApproved">0.00</b>
+        <span class="sw" style="border:1px solid var(--rule)"></span><span>Available</span><b id="kAvail">0.00</b>
       </div>
-      <button class="primary" id="btnRun">Run agent</button>
+      <p class="rule-note">The PaymentLedger never lets settled exceed redeemed, or redeemed exceed the cap. <span id="chanLink"></span></p>
+    </section>
+
+    <section>
+      <h2>Merchant payout</h2>
+      <div class="figure" id="bal">–</div>
+      <div><span class="delta" id="delta"></span></div>
+      <div class="rule-note" id="payoutLink"></div>
+    </section>
+
+    <section>
+      <h2>Trust record</h2>
+      <ul class="proofs" id="proofs"><li class="empty" style="display:block;border:0">Run the agent to start the record.</li></ul>
+    </section>
+  </aside>
+
+  <main>
+    <div class="panel">
+    <div class="board-head">
+      <h2>Payments</h2>
+      <span class="status" id="status">Waiting for a run</span>
+    </div>
+    <table class="board" id="board">
+      <thead><tr>
+        <th>Purchase</th><th>Price</th>
+        <th class="st">402</th><th class="st">Checks</th><th class="st">Signed</th><th class="st">Released</th><th class="st">Redeemed</th><th class="st">Settled</th>
+      </tr></thead>
+      <tbody id="rows"><tr class="board-empty"><td colspan="8">Each purchase the agent makes appears here and moves left to right as it clears.</td></tr></tbody>
+    </table>
+    <div class="plan-by" id="planBy"></div>
+    <details>
+      <summary>Full event log</summary>
+      <ul class="log" id="log"></ul>
+    </details>
     </div>
 
-    <div class="card">
-      <h2>Funded channel (AP4M PaymentLedger)</h2>
-      <div class="bar"><i class="s" id="barS" style="width:0"></i><i class="a" id="barA" style="width:0"></i></div>
-      <div class="legend"><span>Paid <b class="mono" id="lS">0</b></span><span>Approved <b class="mono" id="lA">0</b></span><span>Available <b class="mono" id="lV">0</b></span><span>Cap <b class="mono" id="lC">0</b></span></div>
-      <div class="rule"><b>settled</b> ≤ <b>redeemed</b> ≤ <b>cap</b>, enforced by the ledger</div>
-      <div class="note mono" style="margin-top:8px" id="chan">no channel yet</div>
+    <div class="store panel" id="store">
+      <h2 id="storeTitle">What the agent launched</h2>
+      <div class="store-frame">
+        <div class="store-bar"><span id="storeDomain"></span><a id="storeLink" target="_blank" rel="noopener">Open in a new tab</a></div>
+        <iframe id="storeFrame" title="Storefront the agent deployed"></iframe>
+      </div>
     </div>
 
-    <div class="card">
-      <h2>Merchant payout (RLUSD)</h2>
-      <div><span class="big mono" id="bal">-</span> <span class="delta mono" id="delta"></span></div>
-      <div class="note mono" id="payout"></div>
-    </div>
-
-    <div class="card">
-      <h2>Trust &amp; control</h2>
-      <button id="btnAttack">Merchant attack: OFF</button>
-      <div class="note">LaunchKit quotes 3x on hosting at checkout. The agent should refuse to sign.</div>
-      <button id="btnOvercap">Over-cap voucher test</button>
-      <div class="note">Agent signs a voucher above the channel cap and submits it to the PaymentLedger as a simulation. No gas, no money moves.</div>
-      <button class="danger" id="btnKill">Kill switch: close channel</button>
-    </div>
-
-    <div class="card">
-      <h2>Receipts</h2>
-      <div id="receipts" class="note">No settlements yet.</div>
-    </div>
-  </section>
-
-  <section>
-    <div class="feed" id="feed"><div class="note">Set a mandate and hit Run agent.</div></div>
-    <div class="card" id="storeCard" style="display:none;margin-top:16px">
-      <h2>Launched by the agent <a id="storeLink" target="_blank" style="float:right;text-transform:none;letter-spacing:0">open in new tab</a></h2>
-      <iframe id="store"></iframe>
-    </div>
-  </section>
-</main>
+  </main>
+</div>
+<footer>AgentVault is an independent hackathon project built on the Mastercard AP4M builder kit. It is not a Mastercard product.</footer>
+</div>
 
 <script>
 const $ = (id) => document.getElementById(id);
-const short = (a) => a ? a.slice(0, 6) + "..." + a.slice(-4) : "";
-const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-let ST = {}, first = true;
-const tx = (h) => h ? ` · <a href="${ST.explorer}/tx/${h}" target="_blank">tx ${short(h)}</a>` : "";
-const T = { http: '<span class="tag http">HTTP</span>', chain: '<span class="tag chain">ON-CHAIN</span>', agent: '<span class="tag agent">AGENT</span>', guard: '<span class="tag guard">GUARDRAILS</span>' };
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const short = (a) => (a ? a.slice(0, 6) + "…" + a.slice(-4) : "");
+const n2 = (x) => Number(x || 0).toFixed(2);
+const CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg>';
+const CROSS = '<svg viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg>';
+const STAGES = ["402", "checks", "signed", "released", "redeemed", "settled"];
+let ST = { explorer: "https://explorer.testnet.xrplevm.org" };
+let rows = [], proofs = [], current = null, statusText = "Waiting for a run";
+const txUrl = (h) => `${ST.explorer}/tx/${h}`;
 
-function render(e) {
-  const time = new Date(e.t).toLocaleTimeString();
+function row(item) { return rows.find((r) => r.item === item); }
+
+function apply(e) {
   switch (e.type) {
-    case "start": return ["", `${T.agent}Mandate received`, `${esc(e.goal)} · budget ${e.budget} RLUSD · max ${e.perPurchase} per purchase`];
-    case "kya": $("pKya").textContent = "Agent KYA: registered"; $("pKya").className = "pill ok";
-      return ["good", `${T.guard}Know Your Agent: signed in as a registered agent`, `team ${esc(e.team)} · agent ${short(e.agent)} · <a href="${ST.explorer}/address/${e.registry}" target="_blank">ParticipantRegistry</a>`];
-    case "channel": return ["chain", `${T.chain}${e.reused ? "Using open" : "Opened"} funded channel · cap ${e.cap} RLUSD`, `<span class="mono">${short(e.channelId)}</span> · payout bound to ${short(e.payout)}`];
-    case "thinking": return ["", `${T.agent}${esc(e.text)}`, ""];
-    case "plan": return ["", `${T.agent}Plan ready`, `<span class="note">brain: ${esc(e.brain)}</span><ol style="margin:6px 0 0 18px;padding:0">${(e.purchases || []).map(p => `<li><b>${esc(p.item)}</b>: ${esc(p.why)}</li>`).join("")}</ol>`];
-    case "request": return ["", `${T.http}GET ${esc(e.item)} from ${esc(e.merchant)}`, esc(e.why)];
-    case "402": return ["warn", `${T.http}402 Payment Required · ${e.price} RLUSD`, `${esc(e.merchant)} asks to be paid at ${short(e.payTo)} · scheme ${esc(e.scheme)}`];
-    case "checks": return [e.checks.every(c => c.ok) ? "good" : "bad", `${T.guard}Checks before signing`, `<ul class="checks">${e.checks.map(c => `<li class="${c.ok ? "ok" : "no"}">${esc(c.label)}</li>`).join("")}</ul>`];
-    case "blocked": return ["bad", `BLOCKED: ${esc(e.item)} (${e.price} RLUSD)`, `${esc(e.reason)}. No voucher signed, no money moved.`];
-    case "voucher": return ["", `${T.agent}Signed EIP-712 voucher · cumulative ${e.cumulative} RLUSD`, `<span class="mono">${esc(e.signature)}</span> · key never leaves this machine`];
-    case "paid": return ["good", `${T.http}200 · resource released: ${esc(e.item)}`, resourceView(e.resource) + `<div class="mono" style="font-size:11px;margin-top:4px">voucher digest ${short(e.digest)}</div>`];
-    case "redeeming": return ["chain", `${T.chain}Redeeming voucher on PaymentLedger · ${e.cumulative} RLUSD`, "off the payment hot path"];
-    case "redeemed": return ["chain", `${T.chain}VoucherRedeemed`, `claim ${short(e.claimId || "")}${tx(e.tx)}`];
-    case "settled": return ["good", `${T.chain}Settled ${e.amount} RLUSD to the merchant`, e.auto ? "Settled automatically by the AP4M service · confirmed by the merchant's RLUSD balance on-chain" : `ClaimPaid + SettlementRecorded${tx(e.settlementTx)} · payout${tx(e.payoutTx)}${e.receiptUrl ? ` · <a href="${e.receiptUrl}" target="_blank">receipt</a>` : ""}`];
-    case "store": showStore(e.url); return ["good", `${T.agent}Store deployed: ${esc(e.name)}`, `${esc(e.domain || "")} · <a href="${e.url}" target="_blank">${esc(e.url)}</a>`];
-    case "done": return ["", `${T.agent}Run complete · spent ${e.spent} RLUSD`, ""];
-    case "attack": return [e.on ? "warn" : "", esc(e.text), ""];
-    case "overcap-try": return ["warn", `${T.agent}Over-cap test: signed voucher for ${e.cumulative} RLUSD on a ${e.cap} RLUSD channel`, "Submitting to PaymentLedger as a simulation..."];
-    case "overcap": return [e.rejected ? "good" : "bad", e.rejected ? `${T.chain}PaymentLedger rejected the over-cap voucher` : "Over-cap voucher was NOT rejected", esc(e.reason)];
-    case "closed": return ["bad", `${T.chain}Kill switch: channel closed`, `<span class="mono">${short(e.channelId)}</span>${tx(e.tx)} · no further vouchers can be redeemed`];
-    case "error": return ["bad", "Error", esc(e.text)];
-    default: return ["", esc(e.text || e.type), ""];
+    case "start": rows = []; current = null; $("planBy").textContent = ""; $("store").style.display = "none"; status("Agent is starting"); break;
+    case "kya": if (!proofs.some((p) => p.key === "kya")) addProof("ok", "Signed in as a registered agent", `Team ${esc(e.team)}, wallet ${short(e.agent)}`, e.registry ? `${ST.explorer}/address/${e.registry}` : null, "kya"); break;
+    case "channel": if (!proofs.some((p) => p.key === "ch:" + e.channelId)) addProof("ok", `${e.reused ? "Using" : "Opened"} a funded channel capped at ${n2(e.cap)} RLUSD`, `Payout bound to the merchant ${short(e.payout)}`, null, "ch:" + e.channelId); break;
+    case "thinking": status("Claude is planning the purchases"); break;
+    case "plan": $("planBy").textContent = `Purchases planned by ${e.brain}.`; status("Buying"); break;
+    case "request": current = { item: e.item, merchant: e.merchant, why: e.why, price: null, st: {} }; rows.push(current); current.st["402"] = "wait"; break;
+    case "402": { const r = row(e.item); if (r) { r.price = e.price; r.st["402"] = "done"; r.st.checks = "wait"; } break; }
+    case "checks": { const r = row(e.item); if (r) { r.checks = e.checks; r.st.checks = e.checks.every((c) => c.ok) ? "done" : "fail"; if (r.st.checks === "done") r.st.signed = "wait"; } break; }
+    case "blocked": { const r = row(e.item); if (r) { r.refusal = e.reason; r.st.checks = "fail"; } break; }
+    case "voucher": { const r = row(e.item); if (r) { r.cum = Number(e.cumulative); r.st.signed = "done"; r.st.released = "wait"; } break; }
+    case "paid": { const r = row(e.item); if (r) { r.resource = e.resource; r.st.released = "done"; r.st.redeemed = "wait"; } break; }
+    case "redeemed": for (const r of rows) if (r.cum && r.cum <= Number(e.redeemed) + 1e-9 && r.st.redeemed !== "done") { r.st.redeemed = "done"; r.redeemTx = e.tx; r.st.settled = "wait"; } break;
+    case "settled": for (const r of rows) if (r.cum && r.cum <= Number(e.settled) + 1e-9 && r.st.settled !== "done") { r.st.settled = "done"; r.payoutTx = e.payoutTx; r.receipt = e.receiptUrl; } break;
+    case "store": showStore(e); break;
+    case "done": status(`Run finished. Spent ${n2(e.spent)} RLUSD.`); break;
+    case "attack": status(e.on ? "LaunchKit will now triple hosting at checkout" : "Prices back to normal"); break;
+    case "overcap-try": addProof("wait", `Signed a ${n2(e.cumulative)} RLUSD voucher on a ${n2(e.cap)} RLUSD channel`, "Sent to the PaymentLedger as a simulation", null, "overcap"); break;
+    case "overcap": replaceProof("overcap", e.rejected ? "ok" : "no", e.rejected ? "PaymentLedger rejected the over-cap voucher" : "PaymentLedger did not reject the voucher", esc(e.reason)); break;
+    case "closed": addProof("no", "Channel closed on-chain", "Nothing further can be redeemed", e.tx ? txUrl(e.tx) : null); status("Channel closed"); break;
+    case "error": status("Error: " + e.text); break;
   }
+  log(e);
 }
+
+function status(t) { statusText = t; $("status").textContent = t; }
+function addProof(kind, title, sub, href, key) { proofs.push({ kind, title, sub, href, key }); }
+function replaceProof(key, kind, title, sub) { const p = proofs.find((x) => x.key === key && x.kind === "wait"); if (p) Object.assign(p, { kind, title, sub, key: null }); else addProof(kind, title, sub); }
+
+function pip(state, href) {
+  const cls = state === "done" ? "done" : state === "fail" ? "fail" : state === "wait" ? "wait" : "";
+  const icon = state === "done" ? CHECK : state === "fail" ? CROSS : "";
+  const label = { done: "complete", fail: "refused", wait: "in progress" }[state] || "not started";
+  return href && state === "done" ? `<a class="pip ${cls}" href="${href}" target="_blank" rel="noopener" aria-label="${label}, view transaction">${icon}</a>` : `<span class="pip ${cls}" aria-label="${label}">${icon}</span>`;
+}
+
 function resourceView(r) {
   if (!r) return "";
-  if (r.domain) return `Domain <b>${esc(r.domain)}</b> ${esc(r.status)} until ${esc(r.expires)}`;
-  if (r.live_url) return `${esc(r.plan)} · site slot <b>${esc(r.site)}</b>`;
-  if (r.images) return `<div class="thumbs">${r.images.map(u => `<img src="${u}"/>`).join("")}</div>`;
-  return `<span class="mono">${esc(JSON.stringify(r))}</span>`;
+  if (r.domain) return `<div class="resource">Registered ${esc(r.domain)} until ${esc(r.expires)}</div>`;
+  if (r.live_url) return `<div class="resource">Hosting ready for the ${esc(r.site)} site</div>`;
+  if (r.images) return `<div class="thumbs">${r.images.map((u) => `<img src="${u}" alt="Flower photo delivered by the merchant"/>`).join("")}</div>`;
+  return "";
 }
-function showStore(url) { $("storeCard").style.display = "block"; $("store").src = url + "?t=" + Date.now(); $("storeLink").href = url; }
 
-function add(e) {
-  const [cls, head, meta] = render(e);
-  if (first) { $("feed").innerHTML = ""; first = false; }
-  const d = document.createElement("div");
-  d.className = "ev " + cls;
-  d.innerHTML = `<div class="s"></div><div><div class="h">${head}</div>${meta ? `<div class="m">${meta}</div>` : ""}<div class="m" style="font-size:10px;opacity:.7">${new Date(e.t).toLocaleTimeString()}</div></div>`;
-  $("feed").appendChild(d);
-  $("feed").scrollTop = $("feed").scrollHeight;
-  if (["channel", "paid", "redeemed", "settled", "closed", "done"].includes(e.type)) refresh();
+function render() {
+  if (!rows.length) {
+    $("rows").innerHTML = `<tr class="board-empty"><td colspan="8">Each purchase the agent makes appears here and moves left to right as it clears.</td></tr>`;
+  } else {
+    $("rows").innerHTML = rows.map((r) => {
+      const fail = r.st.checks === "fail";
+      const checks = fail && r.checks ? `<ul class="checks">${r.checks.map((c) => `<li class="${c.ok ? "" : "no"}">${esc(c.label)}</li>`).join("")}</ul>` : "";
+      const links = { redeemed: r.redeemTx ? txUrl(r.redeemTx) : null, settled: r.receipt || (r.payoutTx ? txUrl(r.payoutTx) : null) };
+      const mobile = STAGES.filter((s) => r.st[s] === "done").pop() || "";
+      return `<tr>
+        <td class="item"><b>${esc(r.item)}</b><div class="who">${esc(r.merchant)}</div>${r.why ? `<div class="why">${esc(r.why)}</div>` : ""}
+          ${r.refusal ? `<div class="refusal">Refused: ${esc(r.refusal)}. Nothing was signed and no money moved.</div>${checks}` : resourceView(r.resource)}</td>
+        <td class="price">${r.price ? n2(r.price) : "–"}</td>
+        ${STAGES.map((s) => `<td class="st">${fail && STAGES.indexOf(s) > 1 ? "" : pip(r.st[s], links[s])}</td>`).join("")}
+        <td class="stmobile">${fail ? "Refused" : mobile ? "Last step: " + mobile : ""}</td>
+      </tr>`;
+    }).join("");
+  }
+  $("proofs").innerHTML = proofs.length
+    ? proofs.map((p) => `<li><span class="dot ${p.kind}"></span><div>${p.href ? `<a href="${p.href}" target="_blank" rel="noopener">${esc(p.title)}</a>` : esc(p.title)}${p.sub ? `<div class="sub">${p.sub}</div>` : ""}</div></li>`).join("")
+    : `<li class="empty" style="display:block;border:0">Run the agent to start the record.</li>`;
+}
+
+function log(e) {
+  const text = { request: `Requested ${e.item}`, "402": `402 from ${e.merchant}: ${e.price} RLUSD`, voucher: `Signed voucher, cumulative ${e.cumulative} RLUSD`, paid: `Released ${e.item}`, redeemed: `VoucherRedeemed ${short(e.tx)}`, settled: `Settled ${e.amount} RLUSD`, blocked: `Refused ${e.item}: ${e.reason}`, checks: `Checks for ${e.item}: ${e.checks?.every((c) => c.ok) ? "passed" : "failed"}`, plan: `Plan from ${e.brain}`, store: `Store live at ${e.url}` }[e.type] || e.text || e.reason || e.type;
+  const li = document.createElement("li");
+  li.innerHTML = `<time>${new Date(e.t).toLocaleTimeString()}</time>${esc(text)}`;
+  $("log").prepend(li);
+}
+
+function showStore(e) {
+  $("store").style.display = "block";
+  $("storeTitle").textContent = `What the agent launched: ${e.name || "storefront"}`;
+  $("storeDomain").textContent = e.domain || "";
+  $("storeLink").href = e.url;
+  $("storeFrame").src = e.url + "?t=" + Date.now();
 }
 
 async function refresh() {
   try {
     ST = await (await fetch("/api/status")).json();
-    $("pBrain").textContent = "Brain: " + ST.brain;
-    $("pConn").textContent = "XRPL EVM testnet"; $("pConn").className = "pill ok";
-    const cap = Number(ST.cap) || 0, s = Number(ST.settled) || 0, a = Math.max(0, (Number(ST.signed) || 0) - s);
-    $("barS").style.width = cap ? (s / cap * 100) + "%" : 0; $("barA").style.width = cap ? (a / cap * 100) + "%" : 0;
-    $("lS").textContent = s.toFixed(2); $("lA").textContent = a.toFixed(2); $("lV").textContent = Math.max(0, cap - s - a).toFixed(2); $("lC").textContent = cap.toFixed(2);
-    $("chan").innerHTML = ST.channelId ? `channel ${short(ST.channelId)} · <a href="${ST.explorer}/address/${ST.ledger}" target="_blank">PaymentLedger</a>` : "no channel yet";
+    const cap = Number(ST.cap) || 0, paid = Number(ST.settled) || 0, appr = Math.max(0, (Number(ST.signed) || 0) - paid), avail = Math.max(0, cap - paid - appr);
+    $("fig").textContent = n2(paid); $("figSub").textContent = `of ${n2(cap)} RLUSD paid to the merchant`;
+    $("barPaid").style.width = cap ? (paid / cap) * 100 + "%" : 0;
+    $("barApproved").style.width = cap ? (appr / cap) * 100 + "%" : 0;
+    $("barLabel").setAttribute("aria-label", `${n2(paid)} paid, ${n2(appr)} settling, ${n2(avail)} available of ${n2(cap)} RLUSD`);
+    $("kPaid").textContent = n2(paid); $("kApproved").textContent = n2(appr); $("kAvail").textContent = n2(avail);
+    $("chanLink").innerHTML = ST.channelId ? `<a href="${ST.explorer}/address/${ST.ledger}" target="_blank" rel="noopener">View the PaymentLedger</a>` : "";
     if (ST.payoutBalance != null) {
-      $("bal").textContent = Number(ST.payoutBalance).toFixed(2);
+      $("bal").innerHTML = `${n2(ST.payoutBalance)} <small>RLUSD</small>`;
       const d = ST.payoutStart != null ? Number(ST.payoutBalance) - Number(ST.payoutStart) : 0;
-      $("delta").textContent = d > 0 ? `+${d.toFixed(2)} this session` : "";
+      $("delta").textContent = d > 0.0001 ? `+${n2(d)} received this session` : "";
     }
-    $("payout").innerHTML = ST.payout ? `<a href="${ST.explorer}/address/${ST.payout}" target="_blank">${short(ST.payout)}</a>` : "";
-    $("receipts").innerHTML = ST.receipts?.length ? ST.receipts.map(r => `<div class="rcpt"><span class="mono">${r.amount} RLUSD</span><span>${r.receipt_url ? `<a href="${r.receipt_url}" target="_blank">receipt</a>` : ""}${r.receipt_url && r.payout_tx ? " · " : ""}${r.payout_tx ? `<a href="${ST.explorer}/tx/${r.payout_tx}" target="_blank">payout tx</a>` : ""}${r.auto ? "auto-settled, see portal" : ""}</span></div>`).join("") : "No settlements yet.";
-    $("btnRun").disabled = ST.running;
-    $("btnAttack").textContent = "Merchant attack: " + (ST.surge ? "ON" : "OFF"); $("btnAttack").classList.toggle("on", !!ST.surge);
-  } catch { $("pConn").textContent = "server offline"; $("pConn").className = "pill bad"; }
+    $("payoutLink").innerHTML = ST.payout ? `<a href="${ST.explorer}/address/${ST.payout}" target="_blank" rel="noopener">Merchant wallet ${short(ST.payout)}</a>` : "";
+    $("btnRun").disabled = !!ST.running;
+    $("btnRun").textContent = ST.running ? "Running…" : "Run agent";
+    $("btnAttack").setAttribute("aria-pressed", ST.surge ? "true" : "false");
+    $("btnAttack").textContent = ST.surge ? "Prices raised at checkout" : "Raise prices at checkout";
+  } catch {
+    status("Can't reach the local server. Is npm start running?");
+  }
 }
 
 const post = (u, b) => fetch(u, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(b || {}) });
 $("btnRun").onclick = () => { $("btnRun").disabled = true; post("/api/run", { goal: $("goal").value, budget: $("budget").value, perPurchase: $("perPurchase").value }); };
-$("btnKill").onclick = () => { if (confirm("Close the payment channel on-chain? The agent can't pay anyone after this until a new channel is opened.")) post("/api/kill"); };
+$("btnKill").onclick = () => { if (confirm("Close the payment channel on-chain? The agent can't pay anyone until a new channel opens.")) post("/api/kill"); };
 $("btnOvercap").onclick = () => post("/api/overcap");
+const grow = () => { const g = $("goal"); g.style.height = "auto"; g.style.height = g.scrollHeight + "px"; };
+$("goal").addEventListener("input", grow); window.addEventListener("resize", grow); grow();
 $("btnAttack").onclick = async () => { await post("/api/attack", { on: !ST.surge }); refresh(); };
 
-new EventSource("/events").onmessage = (m) => add(JSON.parse(m.data));
-refresh(); setInterval(refresh, 4000);
+let pending = false;
+new EventSource("/events").onmessage = (m) => {
+  const e = JSON.parse(m.data);
+  apply(e);
+  if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; render(); }); }
+  if (["channel", "paid", "redeemed", "settled", "closed", "done"].includes(e.type)) refresh();
+};
+render(); refresh(); setInterval(refresh, 4000);
+
+// ---------- scroll motion ----------
+(() => {
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const nav = document.querySelector(".top");
+  const hero = document.querySelector(".mandate");
+  const targets = [hero, document.querySelector("aside"), ...document.querySelectorAll("main > .panel"), document.querySelector("footer")];
+  targets.forEach((el, i) => { el.classList.add("reveal"); el.style.transitionDelay = (i < 3 ? i * 120 : 0) + "ms"; });
+  if (still || !("IntersectionObserver" in window)) { targets.forEach((el) => el.classList.add("in")); }
+  else {
+    const io = new IntersectionObserver((entries) => entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } }), { threshold: 0.12 });
+    targets.forEach((el) => io.observe(el));
+  }
+  // the mandate headline eases back as the page scrolls past it
+  const goal = $("goal").closest(".field"); const wrapEl = document.createElement("div"); wrapEl.className = "goal-wrap";
+  goal.parentNode.insertBefore(wrapEl, goal); wrapEl.appendChild(goal);
+  let ticking = false;
+  const onScroll = () => {
+    const y = window.scrollY;
+    nav.classList.toggle("scrolled", y > 8);
+    if (!still) { const t = Math.min(1, y / 420); wrapEl.style.transform = `translateY(${t * 18}px) scale(${1 - t * 0.06})`; wrapEl.style.opacity = String(1 - t * 0.45); }
+    ticking = false;
+  };
+  addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
+  onScroll();
+})();
+
 </script>
 </body>
 </html>
