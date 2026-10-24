@@ -100,11 +100,25 @@
   .board-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
   .board-head h2 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -.03em; }
   .status { font-size: 15px; color: var(--muted); }
+  .head-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  #btnBurst { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 14px; }
+  #btnBurst input { width: 46px; font: 700 14px Figtree, sans-serif; border: 0; border-radius: 999px; padding: 4px 2px; text-align: center; background: var(--paper); color: var(--ink); }
+  #btnBurst:hover input { background: #fff; }
+  .burst { margin-top: 8px; }
+  .burst .count { font-size: 15px; font-weight: 700; }
+  .burst .count span { color: var(--muted); font-weight: 500; }
+  .meter { height: 6px; background: var(--paper); border-radius: 999px; overflow: hidden; margin: 8px 0 10px; max-width: 360px; }
+  .meter i { display: block; height: 100%; background: var(--ink); transition: width .15s linear; }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, 30px); gap: 5px; max-width: 350px; }
+  .gallery img { width: 30px; height: 30px; border-radius: 50%; }
+  .gallery img.new { animation: pop .25s ease-out; }
+  @keyframes pop { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
+  .onechain { font-size: 14px; color: var(--cleared); font-weight: 700; margin-top: 8px; }
   .board { width: 100%; border-collapse: collapse; }
   .board th { text-align: left; font-size: 13px; font-weight: 600; color: var(--muted); padding: 0 6px 12px; border-bottom: 1.5px solid var(--ink); white-space: nowrap; }
   .board th:first-child, .board td:first-child { padding-left: 0; }
   .board th.st { text-align: center; width: 62px; }
-  .board td.item { min-width: 300px; }
+  .board td.item { min-width: 260px; }
   .board td { padding: 18px 6px; border-bottom: 1px solid var(--rule); vertical-align: top; }
   .board tr:last-child td { border-bottom: 0; }
   .item b { font-weight: 700; font-size: 17px; letter-spacing: -.01em; }
@@ -205,7 +219,7 @@
     <div class="panel">
     <div class="board-head">
       <h2>Payments</h2>
-      <span class="status" id="status">Waiting for a run</span>
+      <div class="head-right"><span class="status" id="status">Waiting for a run</span><button id="btnBurst" title="The agent buys product photos from a pay-per-call API, one x402 payment per image">Generate <input id="burstN" type="number" min="5" max="100" value="25" aria-label="Number of calls" onclick="event.stopPropagation()" /> photos, paid per call</button></div>
     </div>
     <table class="board" id="board">
       <thead><tr>
@@ -264,6 +278,10 @@ function apply(e) {
     case "redeemed": for (const r of rows) if (r.cum && r.cum <= Number(e.redeemed) + 1e-9 && r.st.redeemed !== "done") { r.st.redeemed = "done"; r.redeemTx = e.tx; r.st.settled = "wait"; } break;
     case "settled": for (const r of rows) if (r.cum && r.cum <= Number(e.settled) + 1e-9 && r.st.settled !== "done") { r.st.settled = "done"; r.payoutTx = e.payoutTx; r.receipt = e.receiptUrl; } break;
     case "store": showStore(e); break;
+    case "burst-start": current = { item: e.item, merchant: e.merchant, why: `${e.count} calls at ${e.price} RLUSD each, one signed voucher per call`, price: e.total, st: { "402": "wait" }, burst: { n: 0, count: e.count, images: [], ms: 0 } }; rows.push(current); status(`Paying per call: 0 of ${e.count}`); break;
+    case "burst-tick": { const r = rows.find((x) => x.burst && x.item === e.item && !x.burst.done); if (r) { r.burst.n = e.n; r.burst.ms = e.ms; r.burst.images.push(e.image); r.cum = Number(e.cumulative); Object.assign(r.st, { "402": "done", checks: "done", signed: "done", released: "wait" }); } status(`Paying per call: ${e.n} of ${e.count}`); break; }
+    case "burst-blocked": { const r = rows.find((x) => x.burst && !x.burst.done); if (r) { r.refusal = `Call ${e.n} refused: ${e.reason}`; } break; }
+    case "burst-done": { const r = rows.find((x) => x.burst && !x.burst.done); if (r) { r.burst.done = true; r.burst.ms = e.ms; r.cum = Number(e.cumulative); r.price = e.spent; if (e.n) { r.st.released = "done"; r.st.redeemed = "wait"; } } status(`${e.n} payments in ${(e.ms / 1000).toFixed(1)} s. Settling them in one on-chain redemption.`); break; }
     case "done": status(`Run finished. Spent ${n2(e.spent)} RLUSD.`); break;
     case "attack": status(e.on ? "LaunchKit will now triple hosting at checkout" : "Prices back to normal"); break;
     case "overcap-try": addProof("wait", `Signed a ${n2(e.cumulative)} RLUSD voucher on a ${n2(e.cap)} RLUSD channel`, "Sent to the PaymentLedger as a simulation", null, "overcap"); break;
@@ -285,6 +303,15 @@ function pip(state, href) {
   return href && state === "done" ? `<a class="pip ${cls}" href="${href}" target="_blank" rel="noopener" aria-label="${label}, view transaction">${icon}</a>` : `<span class="pip ${cls}" aria-label="${label}">${icon}</span>`;
 }
 
+function burstView(r) {
+  const b = r.burst, pct = b.count ? (b.n / b.count) * 100 : 0;
+  const settled = r.st.settled === "done", redeemed = r.st.redeemed === "done";
+  return `<div class="burst"><div class="count">${b.n} of ${b.count} paid <span>in ${(b.ms / 1000).toFixed(1)} s</span></div>
+    <div class="meter"><i style="width:${pct}%"></i></div>
+    <div class="gallery">${b.images.map((u, i) => `<img src="${u}" alt=""${!b.done && i === b.images.length - 1 ? ' class="new"' : ""}/>`).join("")}</div>
+    ${r.refusal ? `<div class="refusal">${esc(r.refusal)}</div>` : ""}
+    ${redeemed ? `<div class="onechain">${b.n} payments settled with ${settled ? "one redemption" : "one redemption, settling"} on-chain</div>` : ""}</div>`;
+}
 function resourceView(r) {
   if (!r) return "";
   if (r.domain) return `<div class="resource">Registered ${esc(r.domain)} until ${esc(r.expires)}</div>`;
@@ -304,7 +331,7 @@ function render() {
       const mobile = STAGES.filter((s) => r.st[s] === "done").pop() || "";
       return `<tr>
         <td class="item"><b>${esc(r.item)}</b><div class="who">${esc(r.merchant)}</div>${r.why ? `<div class="why">${esc(r.why)}</div>` : ""}
-          ${r.refusal ? `<div class="refusal">Refused: ${esc(r.refusal)}. Nothing was signed and no money moved.</div>${checks}` : resourceView(r.resource)}</td>
+          ${r.burst ? burstView(r) : r.refusal ? `<div class="refusal">Refused: ${esc(r.refusal)}. Nothing was signed and no money moved.</div>${checks}` : resourceView(r.resource)}</td>
         <td class="price">${r.price ? n2(r.price) : "–"}</td>
         ${STAGES.map((s) => `<td class="st">${fail && STAGES.indexOf(s) > 1 ? "" : pip(r.st[s], links[s])}</td>`).join("")}
         <td class="stmobile">${fail ? "Refused" : mobile ? "Last step: " + mobile : ""}</td>
@@ -317,7 +344,7 @@ function render() {
 }
 
 function log(e) {
-  const text = { request: `Requested ${e.item}`, "402": `402 from ${e.merchant}: ${e.price} RLUSD`, voucher: `Signed voucher, cumulative ${e.cumulative} RLUSD`, paid: `Released ${e.item}`, redeemed: `VoucherRedeemed ${short(e.tx)}`, settled: `Settled ${e.amount} RLUSD`, blocked: `Refused ${e.item}: ${e.reason}`, checks: `Checks for ${e.item}: ${e.checks?.every((c) => c.ok) ? "passed" : "failed"}`, plan: `Plan from ${e.brain}`, store: `Store live at ${e.url}` }[e.type] || e.text || e.reason || e.type;
+  const text = { request: `Requested ${e.item}`, "402": `402 from ${e.merchant}: ${e.price} RLUSD`, voucher: `Signed voucher, cumulative ${e.cumulative} RLUSD`, paid: `Released ${e.item}`, redeemed: `VoucherRedeemed ${short(e.tx)}`, settled: `Settled ${e.amount} RLUSD`, blocked: `Refused ${e.item}: ${e.reason}`, checks: `Checks for ${e.item}: ${e.checks?.every((c) => c.ok) ? "passed" : "failed"}`, plan: `Plan from ${e.brain}`, "burst-tick": `Paid call ${e.n} of ${e.count}, cumulative ${e.cumulative} RLUSD`, "burst-done": `${e.n} calls paid in ${e.ms} ms`, store: `Store live at ${e.url}` }[e.type] || e.text || e.reason || e.type;
   const li = document.createElement("li");
   li.innerHTML = `<time>${new Date(e.t).toLocaleTimeString()}</time>${esc(text)}`;
   $("log").prepend(li);
@@ -348,6 +375,7 @@ async function refresh() {
     }
     $("payoutLink").innerHTML = ST.payout ? `<a href="${ST.explorer}/address/${ST.payout}" target="_blank" rel="noopener">Merchant wallet ${short(ST.payout)}</a>` : "";
     $("btnRun").disabled = !!ST.running;
+    $("btnBurst").disabled = !!ST.running;
     $("btnRun").textContent = ST.running ? "Running…" : "Run agent";
     $("btnAttack").setAttribute("aria-pressed", ST.surge ? "true" : "false");
     $("btnAttack").textContent = ST.surge ? "Prices raised at checkout" : "Raise prices at checkout";
@@ -360,6 +388,7 @@ const post = (u, b) => fetch(u, { method: "POST", headers: { "content-type": "ap
 $("btnRun").onclick = () => { $("btnRun").disabled = true; post("/api/run", { goal: $("goal").value, budget: $("budget").value, perPurchase: $("perPurchase").value }); };
 $("btnKill").onclick = () => { if (confirm("Close the payment channel on-chain? The agent can't pay anyone until a new channel opens.")) post("/api/kill"); };
 $("btnOvercap").onclick = () => post("/api/overcap");
+$("btnBurst").onclick = (ev) => { if (ev.target.tagName === "INPUT") return; $("btnBurst").disabled = true; post("/api/burst", { count: $("burstN").value, budget: $("budget").value, perPurchase: $("perPurchase").value }); };
 const grow = () => { const g = $("goal"); g.style.height = "auto"; g.style.height = g.scrollHeight + "px"; };
 $("goal").addEventListener("input", grow); window.addEventListener("resize", grow); grow();
 $("btnAttack").onclick = async () => { await post("/api/attack", { on: !ST.surge }); refresh(); };

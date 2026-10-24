@@ -77,6 +77,11 @@ http.createServer(async (req, res) => {
       agent.run({ goal: String(b.goal || "Launch Bloom & Co's online flower shop"), budget: String(b.budget || "1"), perPurchase: String(b.perPurchase || "0.5") });
       return json(res, 200, { ok: true });
     }
+    if (url.pathname === "/api/burst" && req.method === "POST") {
+      const b = await body(req);
+      agent.burst({ count: Math.max(1, Math.min(100, Number(b.count) || 25)), budget: String(b.budget || "1"), perPurchase: String(b.perPurchase || "0.5") });
+      return json(res, 200, { ok: true });
+    }
     if (url.pathname === "/api/kill" && req.method === "POST") { agent.kill().catch((e) => emit("error", { text: "kill: " + e.message })); return json(res, 200, { ok: true }); }
     if (url.pathname === "/api/overcap" && req.method === "POST") { agent.overcapTest().catch((e) => emit("error", { text: "over-cap test: " + e.message })); return json(res, 200, { ok: true }); }
     if (url.pathname === "/api/attack" && req.method === "POST") {

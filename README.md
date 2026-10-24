@@ -33,6 +33,7 @@ This is Mastercard's own AP4M use case (an agent buys a domain, hosting, and ima
 | Button | What it proves |
 |---|---|
 | **Run agent** | Full loop: plan → 402 → guardrails → voucher → resource → VoucherRedeemed → RLUSD settlement → live storefront |
+| **Generate photos, paid per call** | Machine-speed payments: the agent buys 25 images from a pay-per-call API, one x402 payment and signed voucher per image, in about a second. All 25 settle with a single on-chain redemption, because AP4M vouchers are cumulative |
 | **Merchant attack** | A verified merchant quotes 3x at checkout. The agent refuses to sign; no money moves |
 | **Over-cap voucher test** | Agent signs a voucher above the channel cap and submits it to the real PaymentLedger as a simulation. The ledger rejects it. No gas, no RLUSD spent |
 | **Kill switch** | Channel closed on-chain; nothing further can be redeemed |
