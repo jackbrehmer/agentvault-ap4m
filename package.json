@@ -1,0 +1,9 @@
+{
+  "name": "agentvault-ap4m",
+  "version": "1.0.0",
+  "description": "Claude agent that pays verified x402 merchants through a Mastercard AP4M channel on XRPL EVM, settling in RLUSD",
+  "private": true,
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=22.13" },
+  "dependencies": { "dotenv": "^16.4.5", "ethers": "6.17.0" }
+}
